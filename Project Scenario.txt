@@ -1,0 +1,36 @@
+Problem Statement
+The company’s production MySQL database is currently hosted on an Amazon EC2 instance.
+This setup requires manual OS and database maintenance, making it difficult to scale, ensure high availability, and meet the company’s growing reliability requirements.
+As the business expands, the database must be migrated to Amazon RDS for MySQL to improve scalability, manageability, automated backups, monitoring, and high availability, while minimizing downtime during the migration process.
+The challenge is to ensure a secure, accurate, and minimal-disruption migration from EC2-hosted MySQL to Amazon RDS MySQL.
+
+Scenario
+
+Company Context:
+•	You are working as a Cloud Engineer for an e-commerce company, ShopSphere Pvt. Ltd.
+•	The main application runs on AWS EC2 instances (backend API + frontend).
+•	The MySQL database (v5.7) is running on a t2.medium EC2 instance in the same VPC.
+•	The DB size is ~5 GB and growing daily due to customer orders and transactions.
+
+Current Issues with EC2-hosted MySQL:
+
+1.	Maintenance overhead – OS patching, MySQL upgrades, and backups are manual.
+2.	Single point of failure – No automatic failover.
+3.	Scalability limits – Resizing requires downtime and manual intervention.
+4.	Backup & recovery – No automated snapshots, and backups consume local EC2 storage.
+
+Migration Goals:
+•	Move the MySQL database from EC2 to Amazon RDS MySQL.
+•	Ensure minimal downtime so that the e-commerce website remains operational.
+•	Improve availability by using Multi-AZ deployment on RDS.
+•	Enable automated backups and CloudWatch monitoring.
+•	Maintain data integrity with zero data loss during migration.
+
+Proposed Solution Paths:
+•	Option 1 (Simple migration, with downtime): Use mysqldump to export DB from EC2 and import into RDS.
+•	Option 2 (Minimal downtime): Use AWS Database Migration Service (DMS) to replicate data from EC2 MySQL to RDS MySQL, then switch over when sync completes.
+
+Constraints:
+•	The database must remain in the same AWS region (ap-south-1).
+•	Application configuration must be updated to use the new RDS endpoint after migration.
+•	Security groups must be updated to allow traffic between EC2, RDS, and (if used) DMS.
