@@ -1,0 +1,66 @@
+AWS DMS Migration Notes
+=======================
+
+1. VPC & Networking
+-------------------
+- Ensure **EC2, RDS, and DMS replication instance** are in the **same VPC**.
+- Use correct **subnet groups** and **route tables**.
+- If connecting from local machine, RDS must be **publicly accessible** and inbound rules must allow your IP.
+- Recommended: Keep private (non-public) and connect via EC2 jump box for production.
+
+2. Security Groups
+------------------
+- RDS Security Group must allow **inbound traffic on port 3306 (MySQL)**.
+- Add rules:
+  - Source: DMS replication instance SG
+  - Source: Your IP (for testing, optional)
+- Outbound rules: Allow all traffic (default OK).
+
+3. Database Permissions
+-----------------------
+- Create a **dedicated DMS user** in the database.
+- Example (MySQL):
+  CREATE USER 'dms_user'@'%' IDENTIFIED BY 'Password123!';
+  GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, REFERENCES, ALTER, INDEX ON *.* TO 'dms_user'@'%';
+  FLUSH PRIVILEGES;
+
+- Ensure this user is used in **DMS endpoint settings**.
+
+4. IAM Permissions
+------------------
+- DMS IAM role must have:
+  - AmazonDMSVPCManagementRole
+  - AmazonDMSCloudWatchLogsRole
+  - AmazonDMSRedshiftS3Role (if using S3)
+- Attach policy with S3 full access if S3 is used as a staging area.
+
+5. Query Editor Notes
+---------------------
+- AWS Query Editor in RDS Console only works for:
+  - Aurora Serverless
+  - Enabled Data API
+- For RDS MySQL/Postgres, use:
+  - MySQL Workbench
+  - EC2 CLI (mysql client)
+  - DBeaver, HeidiSQL, etc.
+
+6. Common Issues & Troubleshooting
+----------------------------------
+| Issue                             | Possible Cause                                             | Solution                                                                                                   |
+| --------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Can't connect to RDS (ERROR 2003) | Security Group inbound rules missing / RDS not public      | Add inbound rule for port 3306 from your IP and DMS instance. Ensure RDS is publicly accessible if needed. |
+| Migration task fails              | DMS user lacks privileges                                  | Ensure DMS user has SELECT on source & INSERT/UPDATE on target.                                            |
+| Foreign key errors                | DMS does not handle cascading FK constraints               | Review pre-migration assessment report; disable or adjust constraints if necessary.                        |
+| Pre-migration assessment fails    | Missing IAM role or S3 access                              | Attach proper permissions to DMS IAM role and re-run assessment.                                           |
+| No tables visible in Query Editor | Query editor supports only Aurora Serverless with Data API | Use MySQL client or Workbench to view RDS MySQL tables.                                                    |
+
+7. Pre-Migration Checklist
+--------------------------
+- Source DB connectivity verified.
+- Target DB connectivity verified.
+- DMS replication instance in same VPC/subnet.
+- Security Groups configured correctly.
+- DMS user created with required permissions.
+- IAM roles attached.
+- Test connection in DMS endpoints.
+- Run pre-migration assessment.
